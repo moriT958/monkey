@@ -47,17 +47,17 @@ func (l *Lexer) NextToken() token.Token {
 	default:
 		// 上記以外の文字だった場合
 		if isLetter(l.ch) {
-			literal := l.readIndent()
+			strLiteral := l.readIndent()
 			t := token.Token{
-				Type:    token.LookupIdent(literal),
-				Literal: literal,
+				Type:    token.LookupIdent(strLiteral),
+				Literal: strLiteral,
 			}
 			return t
 		} else if isDigit(l.ch) {
-			number := l.readNumber()
+			numLiteral := l.readNumber()
 			t := token.Token{
 				Type:    token.INT,
-				Literal: number,
+				Literal: numLiteral,
 			}
 			return t
 		} else {
