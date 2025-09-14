@@ -1,6 +1,8 @@
 package lexer
 
-import "monkey/token"
+import (
+	"monkey/token"
+)
 
 type Lexer struct {
 	input   string
@@ -19,6 +21,8 @@ func New(input string) *Lexer {
 // トークンを取得
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
+
+	l.skipWhitespace()
 
 	switch l.ch {
 	case '=':
@@ -40,6 +44,25 @@ func (l *Lexer) NextToken() token.Token {
 	case 0:
 		tok = newToken(token.EOF, l.ch)
 		tok.Literal = ""
+	default:
+		// 上記以外の文字だった場合
+		if isLetter(l.ch) {
+			literal := l.readIndent()
+			t := token.Token{
+				Type:    token.LookupIdent(literal),
+				Literal: literal,
+			}
+			return t
+		} else if isDigit(l.ch) {
+			number := l.readNumber()
+			t := token.Token{
+				Type:    token.INT,
+				Literal: number,
+			}
+			return t
+		} else {
+			tok = newToken(token.ILLEGAL, l.ch)
+		}
 	}
 
 	l.readChar()
@@ -62,4 +85,36 @@ func (l *Lexer) readChar() {
 	}
 	l.pos = l.readPos
 	l.readPos++
+}
+
+// リテラルとして使える文字であるかどうかを判定
+func isLetter(ch byte) bool {
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
+}
+
+// 識別子を読み込む
+func (l *Lexer) readIndent() string {
+	pos := l.pos
+	for isLetter(l.ch) {
+		l.readChar()
+	}
+	return l.input[pos:l.pos]
+}
+
+func (l *Lexer) skipWhitespace() {
+	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+		l.readChar()
+	}
+}
+
+func isDigit(ch byte) bool {
+	return '0' <= ch && ch <= '9'
+}
+
+func (l *Lexer) readNumber() string {
+	pos := l.pos
+	for isDigit(l.ch) {
+		l.readChar()
+	}
+	return l.input[pos:l.pos]
 }
